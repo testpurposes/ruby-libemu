@@ -5,8 +5,9 @@
 
 static VALUE m_libemu;
 static VALUE c_emulator;
-static void emulator_mark(struct emu *);
+static VALUE emulator_allocate(VALUE);
 static void emulator_free (struct emu *);
+static VALUE emulator_test(VALUE, VALUE);
 void Init_rlibemu();
 
 /*
@@ -18,7 +19,8 @@ void Init_rlibemu();
  * failure (no shellcode detected), returns -1
  *
  */
-static VALUE emulator_test(VALUE klass, VALUE sc) {
+static VALUE emulator_test(VALUE klass, VALUE sc) 
+{
 	VALUE shellcode;
 	char *c_shellcode;
 	long len_shellcode;
@@ -40,8 +42,6 @@ static VALUE emulator_test(VALUE klass, VALUE sc) {
 	return INT2FIX(c_result);
 }
 
-static void emulator_mark(struct emu *emulator) {}
-
 static void emulator_free (struct emu *emulator)
 {
   emu_free(emulator);
@@ -51,10 +51,11 @@ static VALUE emulator_allocate(VALUE klass)
 {
   struct emu *emulator = emu_new();
 
-  return Data_Wrap_Struct(klass, emulator_mark, emulator_free, emulator);
+  return Data_Wrap_Struct(klass, NULL, emulator_free, emulator);
 }
 
-void Init_rlibemu() {
+void Init_rlibemu() 
+{
 	m_libemu = rb_define_module("Libemu");
 	/*
 	 * Class Libemu::Emulator
