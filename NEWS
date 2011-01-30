@@ -1,2 +1,6 @@
+2011-01-30 0.0.1
+  * bindings for "emu_cpu.h" (partial support)
+  * test needed
+
 2011-01-21 0.0.1
   * Initial release

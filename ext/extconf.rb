@@ -8,6 +8,20 @@ end
 
 have_func('emu_new', 'emu/emu.h')
 have_func('emu_free', 'emu/emu.h')
+have_func('emu_cpu_parse', 'emu/emu_cpu.h')
+have_func('emu_cpu_parse', 'emu/emu_cpu.h')
+have_func('emu_cpu_step', 'emu/emu_cpu.h')
+have_func('emu_cpu_run', 'emu/emu_cpu.h')
+have_func('emu_cpu_eip_get', 'emu/emu_cpu.h')
+have_func('emu_cpu_eip_set', 'emu/emu_cpu.h')
+have_func('emu_cpu_reg32_get', 'emu/emu_cpu.h')
+have_func('emu_cpu_reg32_set', 'emu/emu_cpu.h')
+have_func('emu_cpu_reg16_get', 'emu/emu_cpu.h')
+have_func('emu_cpu_reg16_set', 'emu/emu_cpu.h')
+have_func('emu_cpu_reg8_get', 'emu/emu_cpu.h')
+have_func('emu_cpu_reg8_set', 'emu/emu_cpu.h')
+have_func('emu_cpu_eflags_get', 'emu/emu_cpu.h')
+have_func('emu_cpu_eflags_set', 'emu/emu_cpu.h')
 have_func('emu_shellcode_test', 'emu/emu_shellcode.h')
 
 create_header
