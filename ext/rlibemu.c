@@ -2,6 +2,7 @@
 
 #include <emu/emu.h>
 #include <emu/emu_cpu.h>
+#include <emu/emu_memory.h>
 #include <emu/emu_shellcode.h>
 
 #define EAX 0
@@ -50,7 +51,79 @@ static VALUE emulator_cpu_reg8_get(VALUE, VALUE);
 static VALUE emulator_cpu_reg8_set(VALUE, VALUE, VALUE);
 static VALUE emulator_cpu_eflags_get(VALUE);
 static VALUE emulator_cpu_eflags_set(VALUE, VALUE);
+static VALUE emulator_memory_read_byte(VALUE, VALUE);
+static VALUE emulator_memory_read_word(VALUE, VALUE);
+static VALUE emulator_memory_read_dword(VALUE, VALUE);
 void Init_rlibemu();
+
+/*
+ * call-seq:
+ * 	Emulator.memory_read_dword(addr) -> integer
+ * 
+ * Read access. If success returns the dword value at address addr. If 
+ * error returns -1.
+ * 
+ */
+static VALUE emulator_memory_read_dword(VALUE klass, VALUE addr)
+{
+	struct emu *emulator;
+	uint32_t c_value;
+	
+	FIXNUM_P(addr);
+	Data_Get_Struct(klass, struct emu, emulator);
+	if (emu_memory_read_dword(emu_memory_get(emulator), 
+								NUM2UINT(addr), 
+								&c_value) == -1) {
+		return INT2NUM(-1);
+	} 
+	return UINT2NUM(c_value);
+}
+
+/*
+ * call-seq:
+ * 	Emulator.memory_read_word(addr) -> integer
+ * 
+ * Read access. If success returns the word value at address addr. If 
+ * error returns -1.
+ * 
+ */
+static VALUE emulator_memory_read_word(VALUE klass, VALUE addr)
+{
+	struct emu *emulator;
+	uint16_t c_value;
+	
+	FIXNUM_P(addr);
+	Data_Get_Struct(klass, struct emu, emulator);
+	if (emu_memory_read_word(emu_memory_get(emulator), 
+								NUM2UINT(addr), 
+								&c_value) == -1) {
+		return INT2NUM(-1);
+	} 
+	return UINT2NUM(c_value);
+}
+
+/*
+ * call-seq:
+ * 	Emulator.memory_read_byte(addr) -> integer
+ * 
+ * Read access. If success returns the byte value at address addr. If 
+ * error returns -1.
+ * 
+ */
+static VALUE emulator_memory_read_byte(VALUE klass, VALUE addr)
+{
+	struct emu *emulator;
+	uint8_t c_value;
+	
+	FIXNUM_P(addr);
+	Data_Get_Struct(klass, struct emu, emulator);
+	if (emu_memory_read_byte(emu_memory_get(emulator), 
+								NUM2UINT(addr), 
+								&c_value) == -1) {
+		return INT2NUM(-1);
+	} 
+	return UINT2NUM(c_value);
+}
 
 /*
  * call-seq:
@@ -101,7 +174,7 @@ static VALUE emulator_cpu_reg8_set(VALUE klass, VALUE reg8, VALUE value)
 	FIXNUM_P(reg8);
 	FIXNUM_P(value);
 	Data_Get_Struct(klass, struct emu, emulator);
-	emu_cpu_reg8_set(emu_cpu_get(emulator), FIX2INT(reg8), NUM2UINT(value));
+	emu_cpu_reg8_set(emu_cpu_get(emulator), FIX2INT(reg8), (uint8_t)NUM2UINT(value));
 	return value;
 }
 
@@ -146,7 +219,7 @@ static VALUE emulator_cpu_reg16_set(VALUE klass, VALUE reg16, VALUE value)
 	FIXNUM_P(reg16);
 	FIXNUM_P(value);
 	Data_Get_Struct(klass, struct emu, emulator);
-	emu_cpu_reg16_set(emu_cpu_get(emulator), FIX2INT(reg16), NUM2UINT(value));
+	emu_cpu_reg16_set(emu_cpu_get(emulator), FIX2INT(reg16), (uint16_t)NUM2UINT(value));
 	return value;
 }
 
@@ -403,4 +476,7 @@ void Init_rlibemu()
 	rb_define_method(c_emulator, "cpu_reg8_set", emulator_cpu_reg8_set, 2);
 	rb_define_method(c_emulator, "cpu_eflags_get", emulator_cpu_eflags_get, 0);
 	rb_define_method(c_emulator, "cpu_eflags_set", emulator_cpu_eflags_set, 1);
+	rb_define_method(c_emulator, "memory_read_byte", emulator_memory_read_byte, 1);
+	rb_define_method(c_emulator, "memory_read_word", emulator_memory_read_word, 1);
+	rb_define_method(c_emulator, "memory_read_dword", emulator_memory_read_dword, 1);
 }

@@ -22,6 +22,9 @@ have_func('emu_cpu_reg8_get', 'emu/emu_cpu.h')
 have_func('emu_cpu_reg8_set', 'emu/emu_cpu.h')
 have_func('emu_cpu_eflags_get', 'emu/emu_cpu.h')
 have_func('emu_cpu_eflags_set', 'emu/emu_cpu.h')
+have_func('emu_memory_read_byte', 'emu/emu_memory.h')
+have_func('emu_memory_read_word', 'emu/emu_memory.h')
+have_func('emu_memory_read_dword', 'emu/emu_memory.h')
 have_func('emu_shellcode_test', 'emu/emu_shellcode.h')
 
 create_header
