@@ -51,14 +51,148 @@ static VALUE emulator_cpu_reg8_get(VALUE, VALUE);
 static VALUE emulator_cpu_reg8_set(VALUE, VALUE, VALUE);
 static VALUE emulator_cpu_eflags_get(VALUE);
 static VALUE emulator_cpu_eflags_set(VALUE, VALUE);
+static VALUE emulator_memory_get_usage(VALUE);
 static VALUE emulator_memory_read_byte(VALUE, VALUE);
 static VALUE emulator_memory_read_word(VALUE, VALUE);
 static VALUE emulator_memory_read_dword(VALUE, VALUE);
+static VALUE emulator_memory_write_byte(VALUE, VALUE, VALUE);
+static VALUE emulator_memory_write_word(VALUE, VALUE, VALUE);
+static VALUE emulator_memory_write_dword(VALUE, VALUE, VALUE);
+static VALUE emulator_memory_mode_ro(VALUE);
+static VALUE emulator_memory_mode_rw(VALUE);
 void Init_rlibemu();
 
 /*
  * call-seq:
- * 	Emulator.memory_read_dword(addr) -> integer
+ * 	emu.memory_mode_ro => true
+ * 
+ *  Set the memory access to read only.
+ * 
+ */
+static VALUE emulator_memory_mode_ro(klass)
+	VALUE klass;
+{
+	struct emu *emulator;
+	
+	Data_Get_Struct(klass, struct emu, emulator);
+	emu_memory_mode_ro(emu_memory_get(emulator));
+	return Qtrue;
+}
+
+/*
+ * call-seq:
+ * 	emu.memory_mode_rw => true
+ * 
+ *  Set the memory access to read and write.
+ * 
+ */
+static VALUE emulator_memory_mode_rw(klass) 
+	VALUE klass;
+{
+	struct emu *emulator;
+	
+	Data_Get_Struct(klass, struct emu, emulator);
+	emu_memory_mode_rw(emu_memory_get(emulator));
+	return Qtrue;
+}
+
+/*
+ * call-seq:
+ * 	emu.memory_get_usage() -> integer
+ * 
+ * Get information about memory usage. Returns the size of memory used 
+ * (allocated) in bytes.
+ * 
+ */
+static VALUE emulator_memory_get_usage(klass) 
+	VALUE klass;
+{
+	struct emu *emulator;
+	uint32_t c_result;
+	
+	Data_Get_Struct(klass, struct emu, emulator);
+	c_result = emu_memory_get_usage(emu_memory_get(emulator));
+	return UINT2NUM(c_result);
+}
+
+/*
+ * call-seq:
+ * 	emu.memory_write_byte(addr, byte) -> fixnum
+ * 
+ * Write access. If success returns 0. If addr is read only returns 0. 
+ * If error (allocating memory) returns -1.
+ * 
+ */
+static VALUE emulator_memory_write_byte(klass, addr, byte)
+	VALUE klass;
+	VALUE addr;
+	VALUE byte;
+{
+	struct emu *emulator;
+	int32_t c_result;
+	
+	FIXNUM_P(addr);
+	FIXNUM_P(byte);
+	Data_Get_Struct(klass, struct emu, emulator);
+	c_result = emu_memory_write_byte(emu_memory_get(emulator), 
+										NUM2UINT(addr), 
+										(uint8_t)NUM2UINT(byte));
+	return INT2FIX(c_result);
+}
+
+/*
+ * call-seq:
+ * 	emu.memory_write_word(addr, word) -> fixnum
+ * 
+ * Write access. If success returns 0. If addr is read only returns 0. 
+ * If error (allocating memory) returns -1.
+ * 
+ */
+static VALUE emulator_memory_write_word(klass, addr, word)
+	VALUE klass;
+	VALUE addr;
+	VALUE word;
+{
+	struct emu *emulator;
+	int32_t c_result;
+	
+	FIXNUM_P(addr);
+	FIXNUM_P(word);
+	Data_Get_Struct(klass, struct emu, emulator);
+	c_result = emu_memory_write_word(emu_memory_get(emulator), 
+										NUM2UINT(addr), 
+										(uint16_t)NUM2UINT(word));
+	return INT2FIX(c_result);
+}
+
+/*
+ * call-seq:
+ * 	emu.memory_write_dword(addr, dword) -> fixnum
+ * 
+ * Write access. If success returns 0. If addr is read only returns 0. 
+ * If error (allocating memory) returns -1.
+ * 
+ */
+static VALUE emulator_memory_write_dword(klass, addr, dword)
+	VALUE klass;
+	VALUE addr;
+	VALUE dword;
+{
+	struct emu *emulator;
+	int32_t c_result;
+	
+	FIXNUM_P(addr);
+	FIXNUM_P(dword);
+	Data_Get_Struct(klass, struct emu, emulator);
+	c_result = emu_memory_write_dword(emu_memory_get(emulator), 
+										NUM2UINT(addr), 
+										NUM2UINT(dword));
+	return INT2FIX(c_result);
+}
+
+/*
+ * call-seq:
+ * 	emu.memory_read_dword(addr) -> integer
  * 
  * Read access. If success returns the dword value at address addr. If 
  * error returns -1.
@@ -81,7 +215,7 @@ static VALUE emulator_memory_read_dword(VALUE klass, VALUE addr)
 
 /*
  * call-seq:
- * 	Emulator.memory_read_word(addr) -> integer
+ * 	emu.memory_read_word(addr) -> integer
  * 
  * Read access. If success returns the word value at address addr. If 
  * error returns -1.
@@ -104,7 +238,7 @@ static VALUE emulator_memory_read_word(VALUE klass, VALUE addr)
 
 /*
  * call-seq:
- * 	Emulator.memory_read_byte(addr) -> integer
+ * 	emu.memory_read_byte(addr) -> integer
  * 
  * Read access. If success returns the byte value at address addr. If 
  * error returns -1.
@@ -127,7 +261,7 @@ static VALUE emulator_memory_read_byte(VALUE klass, VALUE addr)
 
 /*
  * call-seq:
- * 	Emulator.cpu_eflags_set(value) -> fixnum
+ * 	emu.cpu_eflags_set(value) -> fixnum
  * 
  * Set the cpu's eflags. If success returns the new value of eflags.
  * 
@@ -144,7 +278,7 @@ static VALUE emulator_cpu_eflags_set(VALUE klass, VALUE value)
 
 /*
  * call-seq:
- * 	Emulator.cpu_eflags_get() -> integer
+ * 	emu.cpu_eflags_get() -> integer
  * 
  * Get the cpu's eflags.
  * 
@@ -161,7 +295,7 @@ static VALUE emulator_cpu_eflags_get(VALUE klass)
 
 /*
  * call-seq:
- * 	Emulator.cpu_reg8_set(reg8, value) -> fixnum
+ * 	emu.cpu_reg8_set(reg8, value) -> fixnum
  * 
  * Set the cpu's reg8 to value. If success returns the new value of 
  * reg8.
@@ -180,7 +314,7 @@ static VALUE emulator_cpu_reg8_set(VALUE klass, VALUE reg8, VALUE value)
 
 /*
  * call-seq:
- * 	Emulator.cpu_reg8_get(reg8) -> integer
+ * 	emu.cpu_reg8_get(reg8) -> integer
  * 
  * Get the cpu's reg16:
  *		Emulator::AL
@@ -206,7 +340,7 @@ static VALUE emulator_cpu_reg8_get(VALUE klass, VALUE reg8)
 
 /*
  * call-seq:
- * 	Emulator.cpu_reg16_set(reg16, value) -> fixnum
+ * 	emu.cpu_reg16_set(reg16, value) -> fixnum
  * 
  * Set the cpu's reg16 to value. If success returns the new value of 
  * reg16.
@@ -225,7 +359,7 @@ static VALUE emulator_cpu_reg16_set(VALUE klass, VALUE reg16, VALUE value)
 
 /*
  * call-seq:
- * 	Emulator.cpu_reg16_get(reg16) -> integer
+ * 	emu.cpu_reg16_get(reg16) -> integer
  * 
  * Get the cpu's reg16:
  *		Emulator::AX
@@ -251,7 +385,7 @@ static VALUE emulator_cpu_reg16_get(VALUE klass, VALUE reg16)
 
 /*
  * call-seq:
- * 	Emulator.cpu_reg32_set(reg32, value) -> fixnum
+ * 	emu.cpu_reg32_set(reg32, value) -> fixnum
  * 
  * Set the cpu's reg32 to value. If success returns the new value of 
  * reg32.
@@ -270,7 +404,7 @@ static VALUE emulator_cpu_reg32_set(VALUE klass, VALUE reg32, VALUE value)
 
 /*
  * call-seq:
- * 	Emulator.cpu_reg32_get(reg32) -> integer
+ * 	emu.cpu_reg32_get(reg32) -> integer
  * 
  * Get the cpu's REG32:
  *		Emulator::EAX
@@ -296,7 +430,7 @@ static VALUE emulator_cpu_reg32_get(VALUE klass, VALUE reg32)
 
 /*
  * call-seq:
- * 	Emulator.cpu_eip_set(eip) -> fixnum
+ * 	emu.cpu_eip_set(eip) -> fixnum
  * 
  * Set the cpu's EIP. If success returns the new value of EIP.
  * 
@@ -313,7 +447,7 @@ static VALUE emulator_cpu_eip_set(VALUE klass, VALUE eip)
 
 /*
  * call-seq:
- * 	Emulator.cpu_eip_get() -> integer
+ * 	emu.cpu_eip_get() -> integer
  * 
  * Get the cpu's EIP.
  * 
@@ -330,7 +464,7 @@ static VALUE emulator_cpu_eip_get(VALUE klass)
 
 /*
  * call-seq:
- * 	Emulator.cpu_parse() -> fixnum
+ * 	emu.cpu_parse() -> fixnum
  * 
  * Parse a instruction at EIP. On success, returns 0 and on error,
  * returns -1.
@@ -348,7 +482,7 @@ static VALUE emulator_cpu_parse(VALUE klass)
 
 /*
  * call-seq:
- * 	Emulator.cpu_step() -> fixnum
+ * 	emu.cpu_step() -> fixnum
  * 
  * Steps the last instruction. On success, returns 0 and on error, 
  * returns -1.
@@ -367,7 +501,7 @@ static VALUE emulator_cpu_step(VALUE klass)
 
 /*
  * call-seq:
- * 	Emulator.cpu_run() -> fixnum
+ * 	emu.cpu_run() -> fixnum
  * 
  * Parses and steps instructions from EIP. Returns the number of
  * instructions parsed and stepped.
@@ -386,7 +520,7 @@ static VALUE emulator_cpu_run(VALUE klass)
 
 /*
  * call-seq:
- *	Emulator.test(sc) -> fixnum
+ *	emu.test(sc) -> fixnum
  * 
  * Tests a given buffer for possible shellcodes. On success, returns 
  * the offset within the buffer where the shellcode is suspected. On
@@ -476,7 +610,13 @@ void Init_rlibemu()
 	rb_define_method(c_emulator, "cpu_reg8_set", emulator_cpu_reg8_set, 2);
 	rb_define_method(c_emulator, "cpu_eflags_get", emulator_cpu_eflags_get, 0);
 	rb_define_method(c_emulator, "cpu_eflags_set", emulator_cpu_eflags_set, 1);
+	rb_define_method(c_emulator, "memory_get_usage", emulator_memory_get_usage, 0);
 	rb_define_method(c_emulator, "memory_read_byte", emulator_memory_read_byte, 1);
 	rb_define_method(c_emulator, "memory_read_word", emulator_memory_read_word, 1);
 	rb_define_method(c_emulator, "memory_read_dword", emulator_memory_read_dword, 1);
+	rb_define_method(c_emulator, "memory_write_byte", emulator_memory_write_byte, 2);
+	rb_define_method(c_emulator, "memory_write_word", emulator_memory_write_word, 2);
+	rb_define_method(c_emulator, "memory_write_dword", emulator_memory_write_dword, 2);
+	rb_define_method(c_emulator, "memory_mode_ro", emulator_memory_mode_ro, 0);
+	rb_define_method(c_emulator, "memory_mode_rw", emulator_memory_mode_rw, 0);
 }
