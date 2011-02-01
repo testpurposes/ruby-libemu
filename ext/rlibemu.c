@@ -33,6 +33,14 @@
 #define DH 6 /* edx */
 #define BH 7 /* ebx */
 
+/* segments */
+#define CS 0
+#define SS 1
+#define DS 2
+#define ES 3
+#define FS 4
+#define GS 5
+
 static VALUE m_libemu;
 static VALUE c_emulator;
 static VALUE emulator_allocate(VALUE);
@@ -60,7 +68,58 @@ static VALUE emulator_memory_write_word(VALUE, VALUE, VALUE);
 static VALUE emulator_memory_write_dword(VALUE, VALUE, VALUE);
 static VALUE emulator_memory_mode_ro(VALUE);
 static VALUE emulator_memory_mode_rw(VALUE);
+static VALUE emulator_memory_segment_select(VALUE, VALUE);
+static VALUE emulator_memory_segment_get(VALUE);
 void Init_rlibemu();
+
+/*
+ * call-seq:
+ * 	emu.memory_segment_select(segment) -> fixnum
+ * 
+ * Set the memory segment. Returns the selected segment:
+ * 	Emulator::CS
+ * 	Emulator::SS
+ * 	Emulator::DS
+ * 	Emulator::ES
+ * 	Emulator::FS
+ * 	Emulator::GS
+ * 
+ */
+static VALUE emulator_memory_segment_select(klass, segment)
+	VALUE klass;
+	VALUE segment;
+{
+	struct emu *emulator;
+	
+	FIXNUM_P(segment);
+	Data_Get_Struct(klass, struct emu, emulator);
+	emu_memory_segment_select(emu_memory_get(emulator), FIX2UINT(segment));
+	return segment;
+}
+
+/*
+ * call-seq:
+ * 	emu.memory_segment_get() -> integer
+ * 
+ * Get the current memory segment:
+ * 	Emulator::CS
+ * 	Emulator::SS
+ * 	Emulator::DS
+ * 	Emulator::ES
+ * 	Emulator::FS
+ * 	Emulator::GS
+ * 
+ */
+static VALUE emulator_memory_segment_get(klass)
+	VALUE klass;
+{
+	struct emu *emulator;
+	uint32_t c_result;
+	
+	Data_Get_Struct(klass, struct emu, emulator);
+	c_result = emu_memory_segment_get(emu_memory_get(emulator));
+	return UINT2NUM(c_result);
+}
 
 /*
  * call-seq:
@@ -596,6 +655,12 @@ void Init_rlibemu()
 	rb_define_const(c_emulator, "CH", INT2FIX(CL));
 	rb_define_const(c_emulator, "DH", INT2FIX(DL));
 	rb_define_const(c_emulator, "BH", INT2FIX(BL));
+	rb_define_const(c_emulator, "CS", INT2FIX(CS));
+	rb_define_const(c_emulator, "SS", INT2FIX(SS));
+	rb_define_const(c_emulator, "DS", INT2FIX(DS));
+	rb_define_const(c_emulator, "ES", INT2FIX(ES));
+	rb_define_const(c_emulator, "FS", INT2FIX(FS));
+	rb_define_const(c_emulator, "GS", INT2FIX(GS));
 	rb_define_method(c_emulator, "test", emulator_test, 1);
 	rb_define_method(c_emulator, "cpu_parse", emulator_cpu_parse, 0);
 	rb_define_method(c_emulator, "cpu_step", emulator_cpu_step, 0);
@@ -619,4 +684,6 @@ void Init_rlibemu()
 	rb_define_method(c_emulator, "memory_write_dword", emulator_memory_write_dword, 2);
 	rb_define_method(c_emulator, "memory_mode_ro", emulator_memory_mode_ro, 0);
 	rb_define_method(c_emulator, "memory_mode_rw", emulator_memory_mode_rw, 0);
+	rb_define_method(c_emulator, "memory_segment_select", emulator_memory_segment_select, 1);
+	rb_define_method(c_emulator, "memory_segment_get", emulator_memory_segment_get, 0);
 }

@@ -31,6 +31,8 @@ have_func('emu_memory_read_dword', 'emu/emu_memory.h')
 have_func('emu_memory_write_byte', 'emu/emu_memory.h')
 have_func('emu_memory_write_word', 'emu/emu_memory.h')
 have_func('emu_memory_write_dword', 'emu/emu_memory.h')
+have_func('emu_memory_segment_select', 'emu/emu_memory.h')
+have_func('emu_memory_segment_get', 'emu/emu_memory.h')
 have_func('emu_shellcode_test', 'emu/emu_shellcode.h')
 
 create_header
