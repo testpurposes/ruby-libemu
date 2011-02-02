@@ -63,9 +63,11 @@ static VALUE emulator_memory_get_usage(VALUE);
 static VALUE emulator_memory_read_byte(VALUE, VALUE);
 static VALUE emulator_memory_read_word(VALUE, VALUE);
 static VALUE emulator_memory_read_dword(VALUE, VALUE);
+static VALUE emulator_memory_read_block(VALUE, VALUE, VALUE);
 static VALUE emulator_memory_write_byte(VALUE, VALUE, VALUE);
 static VALUE emulator_memory_write_word(VALUE, VALUE, VALUE);
 static VALUE emulator_memory_write_dword(VALUE, VALUE, VALUE);
+static VALUE emulator_memory_write_block(VALUE, VALUE, VALUE);
 static VALUE emulator_memory_mode_ro(VALUE);
 static VALUE emulator_memory_mode_rw(VALUE);
 static VALUE emulator_memory_segment_select(VALUE, VALUE);
@@ -176,6 +178,32 @@ static VALUE emulator_memory_get_usage(klass)
 
 /*
  * call-seq:
+ * 	emu.memory_write_block(addr, src) -> fixnum
+ * 
+ * Write access. If success returns 0. If addr is read only returns 0. 
+ * If error (allocating memory) returns -1.
+ * 
+ */
+static VALUE emulator_memory_write_block(klass, addr, src)
+	VALUE klass;
+	VALUE addr;
+	VALUE src;
+{
+	struct emu *emulator;
+	int32_t c_result;
+	
+	FIXNUM_P(addr);
+	Check_Type(src, T_STRING);
+	Data_Get_Struct(klass, struct emu, emulator);
+	c_result = emu_memory_write_block(emu_memory_get(emulator), 
+										NUM2UINT(addr), 
+										RSTRING_PTR(src),
+										RSTRING_LEN(src));
+	return INT2FIX(c_result);
+}
+
+/*
+ * call-seq:
  * 	emu.memory_write_byte(addr, byte) -> fixnum
  * 
  * Write access. If success returns 0. If addr is read only returns 0. 
@@ -247,6 +275,39 @@ static VALUE emulator_memory_write_dword(klass, addr, dword)
 										NUM2UINT(addr), 
 										NUM2UINT(dword));
 	return INT2FIX(c_result);
+}
+
+/*
+ * call-seq:
+ * 	emu.memory_read_block(addr, len) -> string
+ * 
+ * Read len bytes from addr. If success returns a string of len 
+ * btyes with the contents read from addr. If error returns nil.
+ * 
+ */
+static VALUE emulator_memory_read_block(klass, addr, len)
+	VALUE klass;
+	VALUE addr;
+	VALUE len;
+{
+	struct emu *emulator;
+	VALUE str;
+	uint32_t n;
+	
+	FIXNUM_P(addr);
+	FIXNUM_P(len);
+	
+	n = NUM2UINT(len);
+	str = rb_str_new(0, n);
+	Data_Get_Struct(klass, struct emu, emulator);
+	
+	if (emu_memory_read_block(emu_memory_get(emulator), 
+								NUM2UINT(addr), 
+								RSTRING_PTR(str),
+								n) == -1) {
+		return Qnil;
+	} 
+	return str;
 }
 
 /*
@@ -679,9 +740,11 @@ void Init_rlibemu()
 	rb_define_method(c_emulator, "memory_read_byte", emulator_memory_read_byte, 1);
 	rb_define_method(c_emulator, "memory_read_word", emulator_memory_read_word, 1);
 	rb_define_method(c_emulator, "memory_read_dword", emulator_memory_read_dword, 1);
+	rb_define_method(c_emulator, "memory_read_block", emulator_memory_read_block, 2);
 	rb_define_method(c_emulator, "memory_write_byte", emulator_memory_write_byte, 2);
 	rb_define_method(c_emulator, "memory_write_word", emulator_memory_write_word, 2);
 	rb_define_method(c_emulator, "memory_write_dword", emulator_memory_write_dword, 2);
+	rb_define_method(c_emulator, "memory_write_block", emulator_memory_write_block, 2);
 	rb_define_method(c_emulator, "memory_mode_ro", emulator_memory_mode_ro, 0);
 	rb_define_method(c_emulator, "memory_mode_rw", emulator_memory_mode_rw, 0);
 	rb_define_method(c_emulator, "memory_segment_select", emulator_memory_segment_select, 1);
