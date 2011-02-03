@@ -3,6 +3,7 @@
 #include <emu/emu.h>
 #include <emu/emu_cpu.h>
 #include <emu/emu_memory.h>
+#include <emu/emu_log.h>
 #include <emu/emu_shellcode.h>
 
 #define EAX 0
@@ -41,6 +42,15 @@
 #define FS 4
 #define GS 5
 
+/* debug flags */
+#define DEBUG_FLAG_INST_STRING 0
+#define DEBUG_FLAG_INST_SIZE 1
+
+/* log levels */
+#define EMU_LOG_NONE 0
+#define EMU_LOG_INFO 1
+#define EMU_LOG_DEBUG 2
+
 static VALUE m_libemu;
 static VALUE c_emulator;
 static VALUE emulator_allocate(VALUE);
@@ -72,7 +82,30 @@ static VALUE emulator_memory_mode_ro(VALUE);
 static VALUE emulator_memory_mode_rw(VALUE);
 static VALUE emulator_memory_segment_select(VALUE, VALUE);
 static VALUE emulator_memory_segment_get(VALUE);
+static VALUE emulator_log_level_set(VALUE, VALUE);
 void Init_rlibemu();
+
+/*
+ * call-seq:
+ * 	emu.log_level_set(level) -> true
+ * 
+ * Set the log level:
+ * 	Emulator::EMU_LOG_NONE
+ * 	Emulator::EMU_LOG_INFO
+ * 	Emulator::EMU_LOG_DEBUG
+ * 
+ */
+static VALUE emulator_log_level_set(klass, level)
+	VALUE klass;
+	VALUE level;
+{
+	struct emu *emulator;
+	
+	FIXNUM_P(level);
+	Data_Get_Struct(klass, struct emu, emulator);
+	emu_log_level_set(emu_logging_get(emulator), FIX2UINT(level));
+	return Qtrue;
+}
 
 /*
  * call-seq:
@@ -377,6 +410,48 @@ static VALUE emulator_memory_read_byte(VALUE klass, VALUE addr)
 		return INT2NUM(-1);
 	} 
 	return UINT2NUM(c_value);
+}
+
+/*
+ * call-seq:
+ * 	emu.cpu_debugflag_unset(flag) -> true
+ * 
+ * Unsets the cpu debug flag:
+ * 	Emulator::DEBUG_FLAG_INST_STRING
+ *	Emulator::DEBUG_FLAG_INST_SIZE
+ * 
+ * Returns true
+ * 
+ */
+static VALUE emulator_cpu_debugflag_unset(VALUE klass, VALUE flag)
+{
+	struct emu *emulator;
+	
+	FIXNUM_P(flag);
+	Data_Get_Struct(klass, struct emu, emulator);
+	emu_cpu_debugflag_unset(emu_cpu_get(emulator), (uint8_t)FIX2UINT(flag));
+	return Qtrue;
+}
+
+/*
+ * call-seq:
+ * 	emu.cpu_debugflag_set(flag) -> true
+ * 
+ * Set the cpu debug flag:
+ *	Emulator::DEBUG_FLAG_INST_STRING
+ *	Emulator::DEBUG_FLAG_INST_SIZE
+ * 
+ * Returns true
+ * 
+ */
+static VALUE emulator_cpu_debugflag_set(VALUE klass, VALUE flag)
+{
+	struct emu *emulator;
+	
+	FIXNUM_P(flag);
+	Data_Get_Struct(klass, struct emu, emulator);
+	emu_cpu_debugflag_set(emu_cpu_get(emulator), (uint8_t)FIX2UINT(flag));
+	return Qtrue;
 }
 
 /*
@@ -722,6 +797,11 @@ void Init_rlibemu()
 	rb_define_const(c_emulator, "ES", INT2FIX(ES));
 	rb_define_const(c_emulator, "FS", INT2FIX(FS));
 	rb_define_const(c_emulator, "GS", INT2FIX(GS));
+	rb_define_const(c_emulator, "DEBUG_FLAG_INST_STRING", INT2FIX(DEBUG_FLAG_INST_STRING));
+	rb_define_const(c_emulator, "DEBUG_FLAG_INST_SIZE", INT2FIX(DEBUG_FLAG_INST_SIZE));
+	rb_define_const(c_emulator, "EMU_LOG_NONE", INT2FIX(EMU_LOG_NONE));
+	rb_define_const(c_emulator, "EMU_LOG_INFO", INT2FIX(EMU_LOG_INFO));
+	rb_define_const(c_emulator, "EMU_LOG_DEBUG", INT2FIX(EMU_LOG_DEBUG));
 	rb_define_method(c_emulator, "test", emulator_test, 1);
 	rb_define_method(c_emulator, "cpu_parse", emulator_cpu_parse, 0);
 	rb_define_method(c_emulator, "cpu_step", emulator_cpu_step, 0);
@@ -736,6 +816,8 @@ void Init_rlibemu()
 	rb_define_method(c_emulator, "cpu_reg8_set", emulator_cpu_reg8_set, 2);
 	rb_define_method(c_emulator, "cpu_eflags_get", emulator_cpu_eflags_get, 0);
 	rb_define_method(c_emulator, "cpu_eflags_set", emulator_cpu_eflags_set, 1);
+	rb_define_method(c_emulator, "cpu_debugflag_set", emulator_cpu_debugflag_set, 1);
+	rb_define_method(c_emulator, "cpu_debugflag_unset", emulator_cpu_debugflag_unset, 1);
 	rb_define_method(c_emulator, "memory_get_usage", emulator_memory_get_usage, 0);
 	rb_define_method(c_emulator, "memory_read_byte", emulator_memory_read_byte, 1);
 	rb_define_method(c_emulator, "memory_read_word", emulator_memory_read_word, 1);
@@ -749,4 +831,5 @@ void Init_rlibemu()
 	rb_define_method(c_emulator, "memory_mode_rw", emulator_memory_mode_rw, 0);
 	rb_define_method(c_emulator, "memory_segment_select", emulator_memory_segment_select, 1);
 	rb_define_method(c_emulator, "memory_segment_get", emulator_memory_segment_get, 0);
+	rb_define_method(c_emulator, "log_level_set", emulator_log_level_set, 1);
 }
