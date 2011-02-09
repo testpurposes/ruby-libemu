@@ -39,6 +39,11 @@ have_func('emu_memory_segment_select', 'emu/emu_memory.h')
 have_func('emu_memory_segment_get', 'emu/emu_memory.h')
 have_func('emu_log_level_set', 'emu/emu_log.h')
 have_func('emu_shellcode_test', 'emu/emu_shellcode.h')
+have_func('emu_env_new', 'emu/environment/emu_env.h')
+have_func('emu_env_free', 'emu/environment/emu_env.h')
+have_func('emu_env_linux_new', 'emu/environment/linux/emu_env_linux.h')
+have_func('emu_env_w32_new', 'emu/environment/win32/emu_env_w32.h')
+have_func('emu_profile_new', 'emu/environment/emu_profile.h')
 
 create_header
 create_makefile(extension_name)

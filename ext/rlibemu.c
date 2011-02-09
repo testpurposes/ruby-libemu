@@ -1,5 +1,7 @@
 #include <ruby.h>
 
+#include "environment.h"
+
 #include <emu/emu.h>
 #include <emu/emu_cpu.h>
 #include <emu/emu_memory.h>
@@ -51,7 +53,7 @@
 #define EMU_LOG_INFO 1
 #define EMU_LOG_DEBUG 2
 
-static VALUE m_libemu;
+VALUE m_libemu;
 static VALUE c_emulator;
 static VALUE emulator_allocate(VALUE);
 static void emulator_free (struct emu *);
@@ -83,9 +85,12 @@ static VALUE emulator_memory_mode_rw(VALUE);
 static VALUE emulator_memory_segment_select(VALUE, VALUE);
 static VALUE emulator_memory_segment_get(VALUE);
 static VALUE emulator_log_level_set(VALUE, VALUE);
+static VALUE emulator_env_new(VALUE);
+static VALUE emulator_env_free(VALUE);
+static VALUE emulator_profile_debug(VALUE);
 void Init_rlibemu();
 
-/*
+/*nanny_new
  * call-seq:
  * 	emu.log_level_set(level) -> true
  * 
@@ -832,4 +837,6 @@ void Init_rlibemu()
 	rb_define_method(c_emulator, "memory_segment_select", emulator_memory_segment_select, 1);
 	rb_define_method(c_emulator, "memory_segment_get", emulator_memory_segment_get, 0);
 	rb_define_method(c_emulator, "log_level_set", emulator_log_level_set, 1);
+	
+	init_environment();
 }
