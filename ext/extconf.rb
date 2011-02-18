@@ -44,6 +44,8 @@ have_func('emu_env_free', 'emu/environment/emu_env.h')
 have_func('emu_env_linux_new', 'emu/environment/linux/emu_env_linux.h')
 have_func('emu_env_w32_new', 'emu/environment/win32/emu_env_w32.h')
 have_func('emu_profile_new', 'emu/environment/emu_profile.h')
+have_func('emu_profile_debug', 'emu/environment/emu_profile.h');
+have_func('emu_env_linux_free', 'emu/environment/linux/emu_env_linux.h');
 
 create_header
 create_makefile(extension_name)

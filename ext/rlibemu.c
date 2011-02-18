@@ -1,5 +1,4 @@
 #include <ruby.h>
-
 #include "environment.h"
 
 #include <emu/emu.h>
