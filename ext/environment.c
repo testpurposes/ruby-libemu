@@ -18,6 +18,10 @@ static VALUE environment_linux_syscall_hook(VALUE);
 /*
  *	call-seq:
  *		Environment.linux_syscall_hook() -> boolean
+ *
+ *	If EIP points to "invoke syscall" and it is hooked in the linux environment
+ *	the hook is executed and true returned. If EIP doesn't point to syscall or
+ *	the it isn't hooked returns false.
  */
 static VALUE environment_linux_syscall_hook(klass)
 	VALUE klass;
@@ -38,6 +42,8 @@ static VALUE environment_linux_syscall_hook(klass)
  *	call-seq:
  *		Environment.linux_syscall_check() -> boolean
  *
+ *	Returns true if EIP points to "invoke syscall" and it is hooked in the linux
+ *	environment. Returns false if not.
  */
 static VALUE environment_linux_syscall_check(klass)
 	VALUE klass;
